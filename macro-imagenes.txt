@@ -10,7 +10,7 @@ Sub InsertarImagenPersonalizada()
     Dim respBienvenida As VbMsgBoxResult
     Dim usarDesplazamiento As Boolean
     Dim respDesplazamiento As VbMsgBoxResult
-    Dim opcionHojas As String
+    Dim respHojas As VbMsgBoxResult
     Dim hojaInicio As Long, hojaFin As Long
     Dim i As Long
     Dim totalHojas As Long
@@ -21,7 +21,7 @@ Sub InsertarImagenPersonalizada()
         Exit Sub
     End If
 
-    ' 2. MENSAJE DE BIENVENIDA Y ADVERTENCIA (Aceptar = Continuar, Cancelar = Salir)
+    ' 2. MENSAJE DE BIENVENIDA Y ADVERTENCIA
     respBienvenida = MsgBox("¡Bienvenido a la macro de inserción de imagen!" & vbCrLf & vbCrLf & _
                             "• Recuerde leer atentamente lo que se le solicita en cada paso." & vbCrLf & _
                             "• Se recomienda realizar un respaldo de este archivo en caso de errores." & vbCrLf & vbCrLf & _
@@ -60,37 +60,36 @@ Sub InsertarImagenPersonalizada()
     
     usarDesplazamiento = (respDesplazamiento = vbYes)
 
-    ' 6. PREGUNTA DE ALCANCE: ¿TODAS O RANGO DE HOJAS?
-    opcionHojas = InputBox("¿En qué hojas deseas insertar la imagen?" & vbCrLf & vbCrLf & _
-                           "Escribe:" & vbCrLf & _
-                           "1 = TODAS las hojas (1 a " & totalHojas & ")" & vbCrLf & _
-                           "2 = Un RANGO específico de hojas", "Alcance de Hojas", "1")
+    ' 6. PREGUNTA DE ALCANCE: ¿TODAS LAS HOJAS O UN RANGO? (BOTONES)
+    respHojas = MsgBox("¿Deseas aplicar la imagen en TODAS las hojas del libro?" & vbCrLf & vbCrLf & _
+                       "• SÍ = Aplicar a TODAS las hojas (1 a " & totalHojas & ")" & vbCrLf & _
+                       "• NO = Especificar un RANGO de hojas (ej. de la 2 a la 5)", _
+                       vbYesNoCancel + vbQuestion, "Alcance de Hojas")
 
-    Select Case opcionHojas
-        Case "1"
-            hojaInicio = 1
-            hojaFin = totalHojas
+    If respHojas = vbCancel Then Exit Sub
 
-        Case "2"
-            inputFila = InputBox("Ingresa el número de la PRIMERA hoja (de 1 a " & totalHojas & "):", "Hoja Inicial", "1")
-            If inputFila = "" Or Not IsNumeric(inputFila) Then Exit Sub
-            hojaInicio = CLng(inputFila)
+    If respHojas = vbYes Then
+        ' Opción: TODAS las hojas
+        hojaInicio = 1
+        hojaFin = totalHojas
+    Else
+        ' Opción: RANGO específico de hojas
+        inputFila = InputBox("Ingresa el número de la PRIMERA hoja (de 1 a " & totalHojas & "):", "Hoja Inicial", "1")
+        If inputFila = "" Or Not IsNumeric(inputFila) Then Exit Sub
+        hojaInicio = CLng(inputFila)
 
-            inputFila = InputBox("Ingresa el número de la ÚLTIMA hoja (de " & hojaInicio & " a " & totalHojas & "):", "Hoja Final", CStr(totalHojas))
-            If inputFila = "" Or Not IsNumeric(inputFila) Then Exit Sub
-            hojaFin = CLng(inputFila)
+        inputFila = InputBox("Ingresa el número de la ÚLTIMA hoja (de " & hojaInicio & " a " & totalHojas & "):", "Hoja Final", CStr(totalHojas))
+        If inputFila = "" Or Not IsNumeric(inputFila) Then Exit Sub
+        hojaFin = CLng(inputFila)
 
-            ' Validar límites del rango
-            If hojaInicio < 1 Then hojaInicio = 1
-            If hojaFin > totalHojas Then hojaFin = totalHojas
-            If hojaInicio > hojaFin Then
-                MsgBox "El rango introducido no es válido.", vbCritical
-                Exit Sub
-            End If
-
-        Case Else
+        ' Validar límites del rango
+        If hojaInicio < 1 Then hojaInicio = 1
+        If hojaFin > totalHojas Then hojaFin = totalHojas
+        If hojaInicio > hojaFin Then
+            MsgBox "El rango introducido no es válido.", vbCritical
             Exit Sub
-    End Select
+        End If
+    End If
 
     ' 7. EJECUTAR INSERCIÓN EN EL RANGO SELECCIONADO
     For i = hojaInicio To hojaFin
@@ -155,4 +154,3 @@ Sub InsertarImagenInteligente(ws As Worksheet, rutaImg As String, columna As Str
         .Placement = xlMoveAndSize
     End With
 End Sub
-
