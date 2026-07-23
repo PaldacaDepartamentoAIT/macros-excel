@@ -7,6 +7,7 @@ Sub InsertarImagenPersonalizada()
     Dim filaBase As Long
     Dim fd As FileDialog
     
+    Dim respBienvenida As VbMsgBoxResult
     Dim usarDesplazamiento As Boolean
     Dim respDesplazamiento As VbMsgBoxResult
     Dim opcionHojas As String
@@ -20,9 +21,18 @@ Sub InsertarImagenPersonalizada()
         Exit Sub
     End If
 
+    ' 2. MENSAJE DE BIENVENIDA Y ADVERTENCIA (Aceptar = Continuar, Cancelar = Salir)
+    respBienvenida = MsgBox("¡Bienvenido a la macro de inserción de imagen!" & vbCrLf & vbCrLf & _
+                            "• Recuerde leer atentamente lo que se le solicita en cada paso." & vbCrLf & _
+                            "• Se recomienda realizar un respaldo de este archivo en caso de errores." & vbCrLf & vbCrLf & _
+                            "¿Desea continuar con la ejecución?", _
+                            vbOKCancel + vbInformation, "Inicio - Inserción de Imagen")
+
+    If respBienvenida = vbCancel Then Exit Sub
+
     totalHojas = ActiveWorkbook.Worksheets.Count
 
-    ' 2. SELECCIONAR LA IMAGEN
+    ' 3. SELECCIONAR LA IMAGEN
     Set fd = Application.FileDialog(msoFileDialogFilePicker)
     fd.Title = "Selecciona la imagen a insertar"
     fd.Filters.Clear
@@ -34,15 +44,15 @@ Sub InsertarImagenPersonalizada()
         Exit Sub ' El usuario canceló
     End If
 
-    ' 3. UBICACIÓN (COLUMNA Y FILA BASE)
-    colDestino = UCase(Trim(InputBox("Ingresa la COLUMNA donde colocarás la imagen (ej. A, F, Z):", "Ubicación", "F")))
+    ' 4. UBICACIÓN (COLUMNA Y FILA BASE) - VALORES POR DEFECTO: "A" Y "1"
+    colDestino = UCase(Trim(InputBox("Ingresa la COLUMNA donde colocarás la imagen (ej. A, F, Z):", "Ubicación", "A")))
     If colDestino = "" Then Exit Sub
 
-    inputFila = InputBox("Ingresa el número de FILA donde deseas colocar la imagen:", "Ubicación", "56")
+    inputFila = InputBox("Ingresa el número de FILA donde deseas colocar la imagen:", "Ubicación", "1")
     If inputFila = "" Or Not IsNumeric(inputFila) Then Exit Sub
     filaBase = CLng(inputFila)
 
-    ' 4. PREGUNTA DE MODO: ¿DESPLAZAR O COLOCAR EN FILA EXACTA?
+    ' 5. PREGUNTA DE MODO: ¿DESPLAZAR O COLOCAR EN FILA EXACTA?
     respDesplazamiento = MsgBox("¿Deseas activar el desplazamiento automático?" & vbCrLf & vbCrLf & _
                                 "• SÍ = Si la fila tiene contenido/fondo, se moverá 5 filas abajo de lo último escrito." & vbCrLf & _
                                 "• NO = Se colocará EXACTAMENTE en la fila indicada (" & filaBase & ").", _
@@ -50,7 +60,7 @@ Sub InsertarImagenPersonalizada()
     
     usarDesplazamiento = (respDesplazamiento = vbYes)
 
-    ' 5. PREGUNTA DE ALCANCE: ¿TODAS O RANGO DE HOJAS?
+    ' 6. PREGUNTA DE ALCANCE: ¿TODAS O RANGO DE HOJAS?
     opcionHojas = InputBox("¿En qué hojas deseas insertar la imagen?" & vbCrLf & vbCrLf & _
                            "Escribe:" & vbCrLf & _
                            "1 = TODAS las hojas (1 a " & totalHojas & ")" & vbCrLf & _
@@ -82,7 +92,7 @@ Sub InsertarImagenPersonalizada()
             Exit Sub
     End Select
 
-    ' 6. EJECUTAR INSERCIÓN EN EL RANGO SELECCIONADO
+    ' 7. EJECUTAR INSERCIÓN EN EL RANGO SELECCIONADO
     For i = hojaInicio To hojaFin
         Call InsertarImagenInteligente(ActiveWorkbook.Worksheets(i), rutaImagen, colDestino, filaBase, usarDesplazamiento)
     Next i
